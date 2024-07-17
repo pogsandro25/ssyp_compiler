@@ -13,6 +13,11 @@ public class Main {
         }
 
         List<String> tokens = Lexer.tokenizeFromFile(args[0]);
+
+        for (String tk : tokens) {
+            System.out.println(tk);
+        }
+
         Parser parser = new Parser(tokens);
         Function[] functions = parser.getFunctions();
 
