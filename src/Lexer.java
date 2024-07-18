@@ -24,7 +24,9 @@ public class Lexer {
                 }
             }
         }
-        assert started.size() == ended.size();
+        if (started.size() != ended.size()) {
+            return new ArrayList<>();
+        }
 
         char[] input1 = input.toCharArray();
         for (int i = 0; i < started.size(); ++i) {
@@ -40,7 +42,7 @@ public class Lexer {
         int ind = 0;
         for (int i = 1; i < tokens.size() - 1; ++i) {
             if (Objects.equals(tokens.get(i - 1), "\"") && Objects.equals(tokens.get(i + 1), "\"")) {
-                tokens.set(i, input.substring(started.get(ind), ended.get(ind) + 1));
+                tokens.set(i, input.substring(started.get(ind) + 1, ended.get(ind)));
                 ind += 1;
             }
 
@@ -56,6 +58,7 @@ public class Lexer {
                 .replace("\n", "")
                 .replace(";", " ; ")
                 .replace("#", " # ")
+                .replace("@", " @ ")
                 .replace("\"", " \" ");
         List <String> splitSLines = new ArrayList<>(List.of(splitBySemicolon.split(" ")));
 
@@ -78,9 +81,6 @@ public class Lexer {
         }
     }
 }
-
-
-
 
 
 
