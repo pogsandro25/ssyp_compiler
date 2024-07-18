@@ -11,5 +11,7 @@ public enum InstructionType {
     ENDIF,
     ELIF,
     ELSE,
-    RETURN
+    RETURN,
+    ARRAY_IN,
+    ARRAY_OUT
 }

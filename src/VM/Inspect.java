@@ -14,7 +14,7 @@ public class Inspect implements Instruction {
     }
 
     @Override
-    public void println() {
+    public void println(VmRuntime runtime) {
         System.out.println("INSPECT");
     }
 }

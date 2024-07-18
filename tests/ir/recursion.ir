@@ -11,11 +11,11 @@
 
     #F_BODY_BEGIN;
         #IF < y #0;
-            #* x x #2;
+            #* x x x;
             #F_RETURN x;
         #ELSE;
             #print #2;
-            #* x x #2;
+            #* x x x;
             #- y y #1;
             #recursion x x y;
             #F_RETURN x;
@@ -33,7 +33,7 @@
     #F_VARS_END;
 
     #F_BODY_BEGIN;
-        #recursion x #3 #3;
+        #recursion x #3 #2;
         #F_RETURN x;
     #F_BODY_END;
 #F_END;

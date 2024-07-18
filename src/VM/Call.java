@@ -15,7 +15,7 @@ public class Call implements Instruction {
     }
 
     @Override
-    public void println() {
-        System.out.println("CALL");
+    public void println(VmRuntime runtime) {
+        System.out.printf("%d: CALL %s %d\n", runtime.getInstructionNumber(), this.functionLabel, this.newFunctionOffset);
     }
 }

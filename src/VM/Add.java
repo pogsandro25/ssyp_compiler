@@ -15,9 +15,10 @@ public class Add implements Instruction {
     public void execute(VmRuntime runtime) {
         runtime.setStackAt(this.destination, runtime.stackAt(this.offsetLeft) + runtime.stackAt(this.offsetRight));
     }
+
     @Override
-    public void println() {
-        System.out.println("ADD");
+    public void println(VmRuntime runtime) {
+        System.out.printf("%d: ADD: %d + %d\n", runtime.getInstructionNumber(), runtime.stackAt(this.offsetLeft), runtime.stackAt(this.offsetRight));
     }
 
 }

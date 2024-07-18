@@ -34,6 +34,7 @@ public class Test {
 
     static void runIr(String pathToFile) {
         List<String> tokens = Lexer.tokenizeFromFile(pathToFile);
+      
         Parser parser = new Parser(tokens);
         Function[] functions = parser.getFunctions();
         for (Function function : functions) {

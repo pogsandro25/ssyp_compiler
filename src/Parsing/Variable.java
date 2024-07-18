@@ -1,9 +1,9 @@
 package Parsing;
 
-public record Variable(String name, String type) {
+public record Variable(String name, String[] type) {
 
     @Override
     public String toString() {
-        return name + ": " + type;
+        return name + ": " + String.join("->", type);
     }
 }

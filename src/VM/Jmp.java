@@ -18,27 +18,13 @@ public class Jmp implements Instruction {
         boolean shouldJmp;
 
         switch (this.cmpType) {
-            case NoCmp -> {
-                shouldJmp = true;
-            }
-            case Equal -> {
-                shouldJmp = runtime.stackAt(this.offsetLeft) == runtime.stackAt(this.offsetRight);
-            }
-            case NotEqual -> {
-                shouldJmp = runtime.stackAt(this.offsetLeft) != runtime.stackAt(this.offsetRight);
-            }
-            case Lower -> {
-                shouldJmp = runtime.stackAt(this.offsetLeft) < runtime.stackAt(this.offsetRight);
-            }
-            case LowerEqual -> {
-                shouldJmp = runtime.stackAt(this.offsetLeft) <= runtime.stackAt(this.offsetRight);
-            }
-            case Greater -> {
-                shouldJmp = runtime.stackAt(this.offsetLeft) > runtime.stackAt(this.offsetRight);
-            }
-            case GreaterEqual -> {
-                shouldJmp = runtime.stackAt(this.offsetLeft) >= runtime.stackAt(this.offsetRight);
-            }
+            case NoCmp -> shouldJmp = true;
+            case Equal -> shouldJmp = runtime.stackAt(this.offsetLeft) == runtime.stackAt(this.offsetRight);
+            case NotEqual -> shouldJmp = runtime.stackAt(this.offsetLeft) != runtime.stackAt(this.offsetRight);
+            case Lower -> shouldJmp = runtime.stackAt(this.offsetLeft) < runtime.stackAt(this.offsetRight);
+            case LowerEqual -> shouldJmp = runtime.stackAt(this.offsetLeft) <= runtime.stackAt(this.offsetRight);
+            case Greater -> shouldJmp = runtime.stackAt(this.offsetLeft) > runtime.stackAt(this.offsetRight);
+            case GreaterEqual -> shouldJmp = runtime.stackAt(this.offsetLeft) >= runtime.stackAt(this.offsetRight);
             default -> {
                 assert false;
                 shouldJmp = false;
@@ -50,7 +36,8 @@ public class Jmp implements Instruction {
     }
 
     @Override
-    public void println() {
-        System.out.println("JMP");
+    public void println(VmRuntime runtime) {
+        System.out.printf("%d: JMP: %d %s %d to %d\n", runtime.getInstructionNumber(), runtime.stackAt(this.offsetLeft), this.cmpType.toString(), runtime.stackAt(this.offsetRight), this.destination);
     }
 }
+

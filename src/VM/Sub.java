@@ -17,7 +17,7 @@ public class Sub implements Instruction {
     }
 
     @Override
-    public void println() {
-        System.out.println("SUB");
+    public void println(VmRuntime runtime) {
+        System.out.printf("%d: SUB: %d - %d\n", runtime.getInstructionNumber(), runtime.stackAt(this.offsetLeft), runtime.stackAt(this.offsetRight));
     }
 }

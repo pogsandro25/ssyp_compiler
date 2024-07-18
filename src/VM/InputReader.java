@@ -68,6 +68,15 @@ public class InputReader {
                 case "EXTERN":
                     func.add(new Extern());
                     break;
+                case "ARRAY_CREATE":
+                    func.add(new ArrayCreate(reader.nextInt(), reader.nextInt()));
+                    break;
+                case "ARRAY_IN":
+                    func.add(new ArrayIn(reader.nextInt(), reader.nextInt(), reader.nextInt()));
+                    break;
+                case "ARRAY_OUT":
+                    func.add(new ArrayOut(reader.nextInt(), reader.nextInt(), reader.nextInt()));
+                    break;
                 default:
                     assert s.endsWith(":");
                     functionName = s.substring(0, s.length() - 1);

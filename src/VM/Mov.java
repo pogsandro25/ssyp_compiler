@@ -15,7 +15,7 @@ public class Mov implements Instruction {
     }
 
     @Override
-    public void println() {
-        System.out.println("MOV");
+    public void println(VmRuntime runtime) {
+        System.out.printf("%d: MOV: %d to %d with %d\n", runtime.getInstructionNumber(), this.offsetFrom, this.offsetTo, runtime.stackAt(this.offsetFrom));
     }
 }

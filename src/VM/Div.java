@@ -17,7 +17,7 @@ public class Div implements Instruction {
     }
 
     @Override
-    public void println() {
-        System.out.println("DIV");
+    public void println(VmRuntime runtime) {
+        System.out.printf("%d: DIV: %d + %d\n", runtime.getInstructionNumber(), runtime.stackAt(this.offsetLeft), runtime.stackAt(this.offsetRight));
     }
 }

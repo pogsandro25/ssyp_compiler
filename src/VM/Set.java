@@ -15,9 +15,7 @@ public class Set implements Instruction {
     }
 
     @Override
-    public void println() {
-        System.out.println("SET");
-
-
+    public void println(VmRuntime runtime) {
+        System.out.printf("%d: SET: %d to addr %d\n", runtime.getInstructionNumber(), this.value, runtime.stackAt(this.offset));
     }
 }
