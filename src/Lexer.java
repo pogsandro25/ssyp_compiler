@@ -9,11 +9,49 @@ import java.util.Objects;
 public class Lexer {
     public static List<String> tokenize(String input) {
         assert !input.contains("\t");
+        List <Integer> startedForComments = new ArrayList<>();
+        List <Integer> endedForComments = new ArrayList<>();
+        char[] toCharInputForComments = input.toCharArray();
+        boolean flagForComments = true;
+        for (int i = 1; i < input.length(); ++i) {
+            if (toCharInputForComments[i] == '"' && toCharInputForComments[i - 1] != '\\') {
+                if (flagForComments) {
+                    startedForComments.add(i);
+                    flagForComments = false;
+                } else {
+                    endedForComments.add(i);
+                    flagForComments = true;
+                }
+            }
+        }
+        for (int i = 0; i < toCharInputForComments.length - 1; ++i) {
+            if (toCharInputForComments[i] == '/' && toCharInputForComments[i + 1] == '/')  {
+                boolean flag = true;
+                for (int j = 0; j < endedForComments.size(); ++j) {
+                    if (i > startedForComments.get(j) && i < endedForComments.get(j)) {
+                        flag = false;
+                        break;
+                    }
+                }
+                if (flag) {
+                    int end_delete = toCharInputForComments.length - 1;
+                    for (int j = i; j < toCharInputForComments.length; ++j) {
+                        if (toCharInputForComments[j] == '\n') {
+                            end_delete = j;
+                        }
+                    }
+                    for (int j = i; j <= end_delete; ++j) {
+                        toCharInputForComments[j] = ' ';
+                    }
+
+                }
+            }
+        }
         List <Integer> started = new ArrayList<>();
         List <Integer> ended = new ArrayList<>();
-        char[] toCharInput = input.toCharArray();
+        char[] toCharInput = toCharInputForComments;
         boolean flag = true;
-        for (int i = 0; i < input.length(); ++i) {
+        for (int i = 1; i < toCharInputForComments.length; ++i) {
             if (toCharInput[i] == '"' && toCharInput[i - 1] != '\\') {
                 if (flag) {
                     started.add(i);
@@ -28,7 +66,7 @@ public class Lexer {
             return new ArrayList<>();
         }
 
-        char[] input1 = input.toCharArray();
+        char[] input1 = toCharInputForComments;
         for (int i = 0; i < started.size(); ++i) {
             for (int j = started.get(i) + 1; j < ended.get(i); ++j) {
                 input1[j] = '.';
@@ -81,6 +119,3 @@ public class Lexer {
         }
     }
 }
-
-
-
