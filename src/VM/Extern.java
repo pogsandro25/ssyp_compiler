@@ -63,6 +63,15 @@ public class Extern implements Instruction {
             return;
         }
 
+        if (runtime.getCurrentFunctionName().equals("len")) {
+            Integer[] array = runtime.getArray(runtime.stackAt(0));
+
+            assert array != null;
+
+            runtime.returnWith(array.length);
+            return;
+        }
+
         runtime.returnWith(0);
     }
 
