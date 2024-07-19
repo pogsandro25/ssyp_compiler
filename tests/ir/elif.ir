@@ -1,0 +1,17 @@
+#F_BEGIN;
+    #F_NAME main;
+    #F_VARS_BEGIN;
+        @Int x;
+        @Int y;
+    #F_VARS_END;
+    #F_BODY_BEGIN;
+        #= x #1;
+        #= y #3;
+        #IF == x #0;
+            #F_RETURN y;
+        #ELIF == x #1;
+            #F_RETURN #2;
+        #ENDIF;
+        #F_RETURN x;
+    #F_BODY_END;
+#F_END;

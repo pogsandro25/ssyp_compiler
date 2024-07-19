@@ -9,6 +9,6 @@ public class VM {
 
         InputReader reader = new InputReader(args[0]);
 
-        (new VmRuntime(reader, 512, false)).run();
+        (new VmRuntime(reader, 512, true)).run();
     }
 }

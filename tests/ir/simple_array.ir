@@ -16,7 +16,7 @@
         #[] United #1 #7;
         #[] United #2 #4;
         #][ United #2 x;
-        #print_array #1 United;
+        #print_array #1 United United;
         #F_RETURN x;
     #F_BODY_END;
 #F_END;
