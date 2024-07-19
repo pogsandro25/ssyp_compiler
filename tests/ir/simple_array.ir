@@ -5,11 +5,13 @@
         @Int y;
     #F_ARGS_END;
     #F_VARS_BEGIN;
-        @Array 3 Int United;
+        @Array #3 Int United;
         @Int t1;
         @Int t2;
     #F_VARS_END;
     #F_BODY_BEGIN;
+        #= x #3;
+        #= y x;
         #[] United #0 #2;
         #[] United #1 #7;
         #[] United #2 #4;

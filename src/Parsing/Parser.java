@@ -172,6 +172,10 @@ public class Parser {
             case "ELSE" -> InstructionType.ELSE;
             case "ENDIF" -> InstructionType.ENDIF;
             case "F_RETURN" -> InstructionType.RETURN;
+            case "WHILE" -> InstructionType.WHILE_BEGIN;
+            case "ENDWHILE" -> InstructionType.WHILE_END;
+            case "BREAK" -> InstructionType.BREAK;
+            case "CONTINUE" -> InstructionType.CONTINUE;
             default -> InstructionType.CALL;
         };
     }

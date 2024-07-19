@@ -11,12 +11,12 @@ public class VmRuntime {
     private final int endInstruction = Integer.MAX_VALUE;
     private final HashMap<String, List<Instruction>> instructions = new HashMap<>();
     private final boolean IsDebugging;
+    private final HashMap<Integer, Integer[]> heap = new HashMap<>();
     private List<Instruction> currentInstructions;
     private String currentFunctionName = "main";
     private int stackBase;
     private int currentInstruction = 0;
-    private int thisKey = 0;
-    private final HashMap<Integer, Integer[]> heap = new HashMap<>();
+    private int thisKey = 1;
 
     VmRuntime(InputReader reader, int size, boolean isDebugging) {
         this.stack = new ArrayList<>(size + 1);
@@ -34,6 +34,11 @@ public class VmRuntime {
         while (reader.hasNext()) {
             Pair<String, ArrayList<Instruction>> pair = reader.nextFunction();
             this.instructions.put(pair.get0(), pair.get1());
+        }
+
+        if (!this.instructions.containsKey("main")) {
+            System.out.println("entry function main doesn't exist");
+            throw new RuntimeException();
         }
 
         this.callStack.add(new Pair<>(currentFunctionName, this.currentInstruction));
@@ -67,6 +72,11 @@ public class VmRuntime {
 
     public void enterNewFunction(String functionLabel, int offset) {
         this.callStack.getLast().set1(this.currentInstruction);
+
+        if (!this.instructions.containsKey(functionLabel)) {
+            System.out.println(STR."function \{functionLabel} doesn't exist");
+            throw new RuntimeException();
+        }
 
         this.currentInstructions = this.instructions.get(functionLabel);
 
@@ -111,7 +121,7 @@ public class VmRuntime {
     public String getCurrentFunctionName() {
         return this.currentFunctionName;
     }
-  
+
     public int createNewArray(int size) {
         heap.put(thisKey, new Integer[size]);
         thisKey++;

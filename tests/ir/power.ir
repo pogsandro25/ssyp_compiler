@@ -15,7 +15,7 @@
             #IF = y #1;
                 #F_RETURN x;
             #ELSE;
-                #print #1 x y;
+                #print #1 #2 x y;
                 #- y y #1;
                 #power t1 x y;
                 #* x x t1;

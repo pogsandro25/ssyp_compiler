@@ -25,6 +25,10 @@ public class Translator {
         file.add_func("cprint_array");
         file.add_instructions(new Extern());
         file.add_instructions(new Return(0));
+
+        file.add_func("len");
+        file.add_instructions(new Extern());
+        file.add_instructions(new Return(0));
     }
 
     private static void generateFunction(Function func, BytecodeFile file) {
@@ -41,9 +45,64 @@ public class Translator {
         ArrayList<Block> block = new ArrayList<>();
         ArrayList<BytecodeInstruction> instructions = new ArrayList<>();
 
+        for (Instruction ins : func.instructions()) {
+            for (int i = 0; ins.get(i).isPresent(); i++) {
+                if (ins.get(i).get().getRight().isEmpty()) {
+                    continue;
+                }
+
+                String lit = STR."#\{ins.get(i).get().getRight().get()}";
+                if (!virtualStack.contains(lit)) {
+                    virtualStack.add(lit); // literals will have a # before them
+                    instructions.add(new Set(-(virtualStack.size() - 1), ins.get(i).get().getRight().get()));
+                }
+            }
+        }
+
         for (Variable local : func.locals()) {
-            if (local.type()[0].equals("Array")) {
-                instructions.add(new CreateArray(-virtualStack.indexOf(local.name()), Integer.parseInt(local.type()[1])));
+            if (local.type()[0].equals("Array") && local.type()[1].equals("#")) {
+                String lit = STR."#\{local.type()[2]}";
+                if (!virtualStack.contains(lit)) {
+                    virtualStack.add(lit); // literals will have a # before them
+                    instructions.add(new Set(-(virtualStack.size() - 1), Integer.parseInt(local.type()[2])));
+                }
+            }
+        }
+
+        for (Variable local : func.locals()) {
+            if (local.type().length < 2) {
+                continue;
+            }
+
+            if (local.type()[0].equals("Array") && local.type()[1].equals("#")) {
+                instructions.add(new CreateArray(
+                        -virtualStack.indexOf(local.name()),
+                        -orCreateStack(Integer.parseInt(local.type()[2]), virtualStack, instructions))
+                );
+
+            } else if (local.type()[0].equals("Array")
+                    && Arrays.stream(func.arguments()).anyMatch(arg -> arg.type()[0].equals("Array") && arg.name().equals(local.type()[1]))) {
+
+                int lenPos = -virtualStack.indexOf(STR."#\{local.type()[1]}");
+                if (lenPos == 1) {
+                    virtualStack.add(STR."#\{local.type()[1]}");
+                    lenPos = -(virtualStack.size() - 1);
+
+                    long argIndex = Arrays.stream(func.arguments()).takeWhile(arg -> arg.type()[0].equals("Array") && arg.name().equals(local.type()[1])).count() - 1;
+
+                    // get size of args array
+                    instructions.add(new Mov(-(int) argIndex, -(virtualStack.size() + 1)));
+                    instructions.add(new Call("len", -virtualStack.size()));
+                    instructions.add(new Mov(-virtualStack.size(), lenPos));
+                }
+
+                instructions.add(new CreateArray(-virtualStack.indexOf(local.name()), lenPos));
+            } else if (local.type()[0].equals("Array")) {
+                if (Arrays.stream(func.arguments()).noneMatch(variable -> variable.name().equals(local.type()[1]))) {
+                    System.out.println(STR."var \{local.type()[1]} doesn't exists in arguements");
+                }
+
+                instructions.add(new CreateArray(-virtualStack.indexOf(local.name()), -virtualStack.indexOf(local.type()[1])));
             }
         }
 
@@ -101,18 +160,19 @@ public class Translator {
 
                     Optional<Integer> arg2 = getVarOnlyAddress(ins, 1, virtualStack);
                     arg2.ifPresent(arg -> instructions.add(
-                            new Set(arg1.get(),
-                                    arg
-                            )
+                            new Mov(arg, arg1.get())
                     ));
 
                     if (arg2.isEmpty()) {
                         instructions.add(
-                                new Mov(getVarAddress(ins, 0, virtualStack, instructions),
+                                new Set(getVarAddress(ins, 0, virtualStack, instructions),
                                         ins.get(1).flatMap(Either::getRight).get()
                                 )
                         );
                     }
+                } else {
+                    System.out.println("cannot assign arrays");
+                    throw new RuntimeException();
                 }
             }
 
@@ -166,7 +226,7 @@ public class Translator {
                     throw new RuntimeException();
                 });
 
-                blocks.add(new Block(instructions.size() - 1));
+                blocks.add(new Block(instructions.size() - 1, true));
             }
 
             case ELIF -> {
@@ -181,22 +241,27 @@ public class Translator {
                     throw new RuntimeException();
                 });
 
-                blocks.getLast().mid.add(instructions.size() - 1);
+                Block.LastIf(blocks).mid.add(instructions.size() - 1);
 
                 instructions.add(new Jump(CompareTypes.NoCmp, 0, 0, 0));
-                blocks.getLast().addJmpInfo(instructions.size() - 1);
+                Block.LastIf(blocks).addJmpInfo(instructions.size() - 1);
             }
 
             case ELSE -> {
                 instructions.add(new Jump(CompareTypes.NoCmp, 0, 0, 0));
-                blocks.getLast().addJmpInfo(instructions.size() - 1);
-                blocks.getLast().elseStart = Optional.of(instructions.size()); // TODO: check for correctness #2
+                Block.LastIf(blocks).addJmpInfo(instructions.size() - 1);
+                Block.LastIf(blocks).elseStart = Optional.of(instructions.size()); // TODO: check for correctness #2
             }
 
             case ENDIF -> {
-                blocks.getLast().end = instructions.size(); // TODO: check for correctness
+                if (Block.LastIf(blocks).startJump == Integer.MAX_VALUE) {
+                    instructions.add(new Jump(CompareTypes.NoCmp, 0, 0, 0));
+                    Block.LastIf(blocks).addJmpInfo(instructions.size() - 1);
+                }
 
-                blocks.getLast().fixJumps(instructions);
+                Block.LastIf(blocks).end = instructions.size(); // TODO: check for correctness
+
+                Block.LastIf(blocks).fixIfJumps(instructions);
                 blocks.removeLast();
             }
 
@@ -234,6 +299,60 @@ public class Translator {
                             getVarAddress(ins, 2, virtualStack, instructions)
                     ));
                 }
+            }
+            case WHILE_BEGIN -> {
+                ins.get(0).flatMap(Either::getLeft).ifPresentOrElse(cmpType -> instructions.add(
+                        new Jump(CompareTypes.fromSymbol(cmpType).invert(),
+                                getVarAddress(ins, 1, virtualStack, instructions),
+                                getVarAddress(ins, 2, virtualStack, instructions),
+                                Integer.MAX_VALUE
+                        )
+                ), () -> {
+                    System.out.println("While should have a cmp operand");
+                    throw new RuntimeException();
+                });
+
+                blocks.add(new Block(instructions.size() - 1, false));
+            }
+
+            case WHILE_END -> {
+                blocks.getLast().end = instructions.size();
+                blocks.getLast().fixWhileJumps(instructions);
+                instructions.add(
+                        new Jump(CompareTypes.NoCmp,
+                                0,
+                                0,
+                                Block.LastWhile(blocks).start
+                        )
+                );
+                blocks.removeLast();
+            }
+
+            case BREAK -> {
+                instructions.add(
+                        new Jump(CompareTypes.NoCmp,
+                                0,
+                                0,
+                                Integer.MAX_VALUE
+                        )
+                );
+
+                assert Block.LastWhile(blocks) != null;
+                Block.LastWhile(blocks)
+                        .breaks.add(instructions.size() - 1);
+            }
+
+            case CONTINUE -> {
+                instructions.add(
+                        new Jump(CompareTypes.NoCmp,
+                                0,
+                                0,
+                                Integer.MAX_VALUE
+                        )
+                );
+
+                assert Block.LastWhile(blocks) != null;
+                Block.LastWhile(blocks).continues.add(instructions.size() - 1);
             }
         }
     }
@@ -301,36 +420,60 @@ public class Translator {
     private static int orCreateStack(int literal, ArrayList<String> virtualStack, ArrayList<BytecodeInstruction> instructions) {
         int pos = virtualStack.indexOf(STR."#\{literal}");
 
-        if (pos == -1) {
-            virtualStack.add(STR."#\{literal}"); // literals will have a # before them
-            pos = (virtualStack.size()) - 1;
-        }
-
-        // Could in the future bring constants to the top
-        instructions.add(new Set(-pos, literal));
+        assert pos != -1;
+        // stack literals are init at the start of the function
 
         return pos;
     }
 }
 
 class Block {
+    boolean IsIfBlock;
     int start;
     int startJump;
     ArrayList<Integer> mid;
     ArrayList<Integer> midJump;
     Optional<Integer> elseStart;
     int end;
+    ArrayList<Integer> breaks;
+    ArrayList<Integer> continues;
 
-    Block(int start) {
+
+    Block(int start, boolean IsIfBlock) {
+        this.IsIfBlock = IsIfBlock;
         this.start = start;
+        this.startJump = Integer.MAX_VALUE;
         this.mid = new ArrayList<>();
         this.midJump = new ArrayList<>();
         this.end = Integer.MAX_VALUE;
         this.elseStart = Optional.empty();
+        this.breaks = new ArrayList<>();
+        this.continues = new ArrayList<>();
     }
 
-    public void fixJumps(ArrayList<BytecodeInstruction> instructions) {
+    static Block LastWhile(ArrayList<Block> blocks) {
+        for (int i = blocks.size() - 1; i > -1; i--) {
+            if (!blocks.get(i).IsIfBlock)
+                return blocks.get(i);
+        }
+
+        assert false;
+        return blocks.getFirst();
+    }
+
+    static Block LastIf(ArrayList<Block> blocks) {
+        for (int i = blocks.size() - 1; i > -1; i--) {
+            if (blocks.get(i).IsIfBlock)
+                return blocks.get(i);
+        }
+
+        assert false;
+        return blocks.getFirst();
+    }
+
+    public void fixIfJumps(ArrayList<BytecodeInstruction> instructions) {
         assert this.end != Integer.MAX_VALUE;
+        assert this.IsIfBlock;
 
         if (instructions.get(this.start) instanceof Jump) {
             ((Jump) instructions.get(this.start)).setJumpDestination(this.mid.isEmpty() ? this.elseStart.orElseGet(() -> this.end) : this.mid.getFirst());
@@ -360,6 +503,36 @@ class Block {
                 ((Jump) instructions.get(i)).setJumpDestination(this.end);
             } else {
                 System.out.println("invalid else if jmp jmp instruction at index");
+                throw new RuntimeException();
+            }
+        }
+    }
+
+    public void fixWhileJumps(ArrayList<BytecodeInstruction> instructions) {
+        assert this.end != Integer.MAX_VALUE;
+        assert !this.IsIfBlock;
+
+        if (instructions.get(this.start) instanceof Jump) {
+            ((Jump) instructions.get(this.start)).setJumpDestination(this.end + 1);
+        } else {
+            System.out.println("invalid while jmp instruction at index");
+            throw new RuntimeException();
+        }
+
+        for (int i : this.breaks) {
+            if (instructions.get(i) instanceof Jump) {
+                ((Jump) instructions.get(i)).setJumpDestination(this.end + 1);
+            } else {
+                System.out.println("invalid break jmp instruction at index");
+                throw new RuntimeException();
+            }
+        }
+
+        for (int i : this.continues) {
+            if (instructions.get(i) instanceof Jump) {
+                ((Jump) instructions.get(i)).setJumpDestination(this.end);
+            } else {
+                System.out.println("invalid continue jmp instruction at index");
                 throw new RuntimeException();
             }
         }

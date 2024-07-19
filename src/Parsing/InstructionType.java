@@ -13,5 +13,9 @@ public enum InstructionType {
     ELSE,
     RETURN,
     ARRAY_IN,
-    ARRAY_OUT
+    ARRAY_OUT,
+    WHILE_BEGIN,
+    WHILE_END,
+    BREAK,
+    CONTINUE
 }

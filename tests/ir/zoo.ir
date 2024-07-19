@@ -1,0 +1,26 @@
+#F_BEGIN;
+    #F_NAME zoo;
+    #F_ARGS_BEGIN;
+        @Array x Int zoo_arr;
+    #F_ARGS_END;
+    #F_VARS_BEGIN;
+    #F_VARS_END;
+    #F_BODY_BEGIN;
+        #cprint_array zoo_arr;
+    #F_BODY_END;
+#F_END;
+
+#F_BEGIN;
+    #F_NAME main;
+    #F_ARGS_BEGIN;
+    #F_ARGS_END;
+    #F_VARS_BEGIN;
+        @Array #3 Int zoo_arr;
+    #F_VARS_END;
+    #F_BODY_BEGIN;
+        #[] zoo_arr #0 #90;
+        #[] zoo_arr #1 #79;
+        #[] zoo_arr #2 #79;
+        #zoo #0 #5 #3;
+    #F_BODY_END;
+#F_END;

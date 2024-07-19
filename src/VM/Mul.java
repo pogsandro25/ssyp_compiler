@@ -18,6 +18,6 @@ public class Mul implements Instruction {
 
     @Override
     public void println(VmRuntime runtime) {
-        System.out.printf("%d: MUL: %d + %d\n", runtime.getInstructionNumber(), runtime.stackAt(this.offsetLeft), runtime.stackAt(this.offsetRight));
+        System.out.printf("%d: MUL: %d * %d\n", runtime.getInstructionNumber(), runtime.stackAt(this.offsetLeft), runtime.stackAt(this.offsetRight));
     }
 }
