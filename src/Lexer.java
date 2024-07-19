@@ -38,6 +38,7 @@ public class Lexer {
                     for (int j = i; j < toCharInputForComments.length; ++j) {
                         if (toCharInputForComments[j] == '\n') {
                             end_delete = j;
+                            break;
                         }
                     }
                     for (int j = i; j <= end_delete; ++j) {
